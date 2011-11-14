@@ -16,7 +16,7 @@ import pl.dagguh.soccerbackend.entity.Account;
 import pl.dagguh.soccerbackend.entity.Player;
 
 /**
- *
+ * some useless stuff
  * @author Maciej Kwidziński <maciek.kwidzinski@gmail.com>
  */
 @Stateless
