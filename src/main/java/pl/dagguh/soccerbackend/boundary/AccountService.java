@@ -58,15 +58,15 @@ public class AccountService {
 	@Path("/authenticate")
 	public String authenticate(Account inputAccount) {
 		log.info("Authenticating: " + inputAccount);
-		Account savedAccount = find(inputAccount.getPlayer());
-		if (null == savedAccount) {
-			log.info("No account matches " + savedAccount);
+		Account matchingAccount = find(inputAccount.getPlayer());
+		if (null == matchingAccount) {
+			log.info("No account matches " + matchingAccount);
 		} else {
-			log.info("Found account matching " + savedAccount);
-			if (savedAccount.getPassword().equals(inputAccount.getPassword())) {
+			log.info("Found account matching " + matchingAccount);
+			if (matchingAccount.getPassword().equals(inputAccount.getPassword())) {
 				String ticket = UUID.randomUUID().toString();
-				savedAccount.setTicket(ticket);
-				em.merge(savedAccount);
+				matchingAccount.setTicket(ticket);
+				em.merge(matchingAccount);
 				return ticket;
 			}
 		}
