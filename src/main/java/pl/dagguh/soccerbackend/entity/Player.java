@@ -20,6 +20,7 @@ public class Player implements Serializable {
 	@Id
 	private String nick;
 	private int score = 1200;
+	private String email;
 
 	public String getNick() {
 		return nick;
@@ -28,7 +29,7 @@ public class Player implements Serializable {
 	public void setNick(String nick) {
 		this.nick = nick;
 	}
-	
+
 	public int getScore() {
 		return score;
 	}
@@ -37,8 +38,16 @@ public class Player implements Serializable {
 		this.score = score;
 	}
 
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
 	@Override
 	public String toString() {
-		return "Player{" + "nick=" + nick + '}';
+		return "Player{" + "nick=" + nick + ", score=" + score + ", email=" + email + '}';
 	}
 }
