@@ -28,22 +28,29 @@ public class AccountService {
 
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void create(Account account) {
-		log.info("Creating account " + account);
-		em.merge(account);
+	@Produces(MediaType.TEXT_PLAIN)
+	public String create(Account account) {
+		log.info("Incoming account " + account);
 		Player player = account.getPlayer();
+		if (exists(player)) {
+			return "Gracz " + player.getNick() + " już posiada konto";
+		}
 		player.setScore(1200);
-		em.merge(player);
+		account.setPlayer(player);
+		em.merge(account);
+		return "Konto dla gracza " + player.getNick() + " zosało założone";
 	}
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_XML)
-	public Account update(Account account) {
+	@Produces(MediaType.TEXT_PLAIN)
+	public String update(Account account) {
 		if (exists(account.getPlayer())) {
-			return em.merge(account);
+			em.merge(account);
+			return "Zmiany zostały zapisane";
+		} else {
+			return "Gracz nie istnieje";
 		}
-		throw new IllegalArgumentException("Account doesn't exist");
 	}
 
 	@DELETE
@@ -79,8 +86,7 @@ public class AccountService {
 
 	public boolean exists(Player player) {
 		try {
-			find(player);
-			return true;
+			return null != find(player);
 		} catch (IllegalArgumentException e) {
 			return false;
 		}
