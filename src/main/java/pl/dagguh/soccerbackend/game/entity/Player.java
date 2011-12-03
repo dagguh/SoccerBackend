@@ -1,4 +1,4 @@
-package pl.dagguh.soccerbackend.entity;
+package pl.dagguh.soccerbackend.game.entity;
 
 import java.io.Serializable;
 import javax.persistence.Entity;
@@ -17,17 +17,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Player implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	public static final int initialScore = 1200;
 	@Id
 	private String nick;
-	private int score = 1200;
+	private String password;
+	private int score = initialScore;
 	private String email;
+	private String ticket;
 
 	public String getNick() {
 		return nick;
-	}
-
-	public void setNick(String nick) {
-		this.nick = nick;
 	}
 
 	public int getScore() {
@@ -38,16 +37,24 @@ public class Player implements Serializable {
 		this.score = score;
 	}
 
-	public String getEmail() {
-		return email;
+	public String getTicket() {
+		return ticket;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setTicket(String ticket) {
+		this.ticket = ticket;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	@Override
 	public String toString() {
-		return "Player{" + "nick=" + nick + ", score=" + score + ", email=" + email + '}';
+		return "Player{" + "nick=" + nick + ", password=" + password + ", score=" + score + ", email=" + email + ", ticket=" + ticket + '}';
 	}
 }
