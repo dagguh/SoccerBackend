@@ -1,5 +1,6 @@
 package pl.dagguh.soccerbackend.game.boundary;
 
+import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.*;
@@ -88,10 +89,10 @@ public class GameService {
 		try {
 			TypedQuery<Long> query = em.createQuery("SELECT e.id FROM Game e WHERE e.bluePlayerNick = :blueNick", Long.class);
 			query.setParameter("blueNick", "");
-			long openGameId = query.getSingleResult();
-			log.info("Found open game id " + openGameId);
-			return Long.toString(openGameId);
-		} catch (NoResultException e) {
+			List<Long> gameIds = query.getResultList();
+			log.info("Found open game ids " + gameIds);
+			return Long.toString(gameIds.get(0));
+		} catch (IndexOutOfBoundsException e) {
 			log.info("No open games found");
 			return "-1";
 		}
