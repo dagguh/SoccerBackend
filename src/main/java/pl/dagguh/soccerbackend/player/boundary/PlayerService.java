@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 import pl.dagguh.soccerbackend.player.control.PasswordMismatchException;
 import pl.dagguh.soccerbackend.player.control.PlayerNotFoundException;
 import pl.dagguh.soccerbackend.player.control.TicketMismatchException;
-import pl.dagguh.soccerbackend.game.entity.Player;
+import pl.dagguh.soccerbackend.player.entity.Player;
 
 /**
  *

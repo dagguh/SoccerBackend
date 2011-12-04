@@ -1,6 +1,13 @@
 package pl.dagguh.soccerbackend.game.entity;
 
 import java.awt.Point;
+import java.io.Serializable;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.log4j.Logger;
 import pl.dagguh.soccerbackend.game.control.MoveDirection;
 import pl.dagguh.soccerbackend.game.control.UnexpectedMoveDirection;
@@ -8,10 +15,15 @@ import pl.dagguh.soccerbackend.game.control.UnexpectedMoveDirection;
 /**
  * @author Maciej Kwidziński <maciek.kwidzinski@gmail.com>
  */
-@Entity
 @XmlRootElement
-public class GameField {
+@XmlAccessorType(XmlAccessType.FIELD)
+@Entity
+public class GameField implements Serializable {
 
+	private static final long serialVersionUID = 1L;
+	@Id
+	@GeneratedValue
+	private long id;
 	private static final int fieldWidth = 9;
 	private static final int fieldHeight = 11;
 	private int[][] bitMasks;
@@ -31,7 +43,7 @@ public class GameField {
 	}
 
 	public GameField(int[][] bitMasks, Point ball) {
-		GameField(bitMasks, ball.x, ball.y);
+		this(bitMasks, ball.x, ball.y);
 	}
 
 	public final void clear() {
@@ -41,6 +53,12 @@ public class GameField {
 				bitMasks[y][x] = emptyBitMask;
 			}
 		}
+		ballX = 4;
+		ballY = 7;
+	}
+
+	public long getId() {
+		return id;
 	}
 
 	public int getBallX() {
@@ -65,6 +83,11 @@ public class GameField {
 
 	public void setBitMasks(int[][] bitMasks) {
 		this.bitMasks = bitMasks;
+	}
+
+	@Override
+	public String toString() {
+		return "GameField{" + "ballX=" + ballX + ", ballY=" + ballY + '}';
 	}
 
 	public boolean isMoveDirectionLegal(MoveDirection moveDirection) {
@@ -121,7 +144,6 @@ public class GameField {
 				moveWest();
 				break;
 			default:
-				log.error("Unexpected move direction " + moveDirection);
 				throw new UnexpectedMoveDirection();
 		}
 	}

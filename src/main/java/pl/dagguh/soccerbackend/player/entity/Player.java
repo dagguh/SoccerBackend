@@ -1,4 +1,4 @@
-package pl.dagguh.soccerbackend.game.entity;
+package pl.dagguh.soccerbackend.player.entity;
 
 import java.io.Serializable;
 import javax.persistence.Entity;

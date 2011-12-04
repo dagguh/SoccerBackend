@@ -1,33 +1,29 @@
 package pl.dagguh.soccerbackend.game.boundary;
 
-import java.util.List;
-import pl.dagguh.soccerbackend.player.boundary.PlayerService;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Table;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
 import pl.dagguh.soccerbackend.game.control.GameNotFoundException;
+import pl.dagguh.soccerbackend.game.entity.Game;
+import pl.dagguh.soccerbackend.game.entity.GameField;
+import pl.dagguh.soccerbackend.player.entity.Player;
+import pl.dagguh.soccerbackend.player.boundary.PlayerService;
 import pl.dagguh.soccerbackend.player.control.PlayerNotFoundException;
 import pl.dagguh.soccerbackend.player.control.TicketMismatchException;
-import pl.dagguh.soccerbackend.game.entity.Game;
-import pl.dagguh.soccerbackend.game.entity.Player;
 
 /**
  * @author Maciej Kwidziński <maciek.kwidzinski@gmail.com>
  */
 @Stateless
 @Path("/game")
-@Table(name = GameService.tableName)
+@Table()
 public class GameService {
 
-	public static final String tableName = "GAME";
 	private static Logger log = Logger.getLogger(GameService.class);
+	public static final String emptyPlayerNick = "";
 	@PersistenceContext
 	private EntityManager em;
 	@EJB
@@ -36,38 +32,45 @@ public class GameService {
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
-	public String createWithStringTicket(Player firstPlayer) {
-		return Long.toString(create(firstPlayer));
-	}
-	
-	public long create(Player firstPlayer) {
+	public String hostGame(Player firstPlayer) {
 		try {
 			log.info("Creating new game with first player: " + firstPlayer);
 			playerService.validateTicket(firstPlayer);
-			Game game = new Game();
-			game.setRedPlayerNick(firstPlayer.getNick());
-			Game newGame = em.merge(game);
-			log.info("New game created " + newGame);
-			return newGame.getId();
+			Game mergedGame = em.merge(createNewGame(firstPlayer.getNick()));
+			log.info("New game created " + mergedGame);
+			return Long.toString(mergedGame.getId());
 		} catch (PlayerNotFoundException e) {
-			return -1;
+			return "-1";
 		} catch (TicketMismatchException e) {
-			return -1;
+			return "-1";
 		}
+	}
+
+	public Game createNewGame(String redPlayerNick) {
+		Game game = new Game();
+		game.setRedPlayerNick(redPlayerNick);
+		game.setBluePlayerNick(emptyPlayerNick);
+		game.setIsItRedsTurn(true);
+		game.setGameField(new GameField());
+		return game;
 	}
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
-	@Path("/{gameId}")
-	public String join(Player player, @PathParam("gameId") long gameId) {
+	@Path("/join/{gameId}")
+	public void join(Player bluePlayer, @PathParam("gameId") String gameId) {
 		try {
 			Game game = find(gameId);
-//			if (game.)
-			return "Dołączono";
+			game.setBluePlayerNick(bluePlayer.getNick());
+			em.merge(game);
 		} catch (GameNotFoundException e) {
-			return "Gra nie istnieje";
+			throw new WebApplicationException(404);
 		}
+	}
+
+	private Game find(String gameId) throws GameNotFoundException {
+		return find(Long.parseLong(gameId));
 	}
 
 	private Game find(long gameId) throws GameNotFoundException {
@@ -78,11 +81,19 @@ public class GameService {
 		return game;
 	}
 
-//	private List<Game> findOpenGames() {
-//		TypedQuery<Game> query = em.createQuery("SELECT * FROM ", Game.class);
-//		TypedQuery<Game> query2 = em.createQuery(new CriteriaQuery<Game>())
-//		CriteriaQuery<Game> query = em.getCriteriaBuilder().createQuery(Game.class);
-//		query.select(query.from(Game.class)).where(null);
-//		return query.getResultList();
-//	}
+	@GET
+	@Path("/list")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String findOpenGame() {
+		try {
+			TypedQuery<Game> query = em.createQuery("SELECT e.id FROM Game e WHERE e.bluePlayerNick = :blueNick", Game.class);
+			query.setParameter("blueNick", "");
+			Game openGame = query.getSingleResult();
+			log.info("Found open game " + openGame);
+			return Long.toString(openGame.getId());
+		} catch (NoResultException e) {
+			log.info("No open games found");
+			return "-1";
+		}
+	}
 }

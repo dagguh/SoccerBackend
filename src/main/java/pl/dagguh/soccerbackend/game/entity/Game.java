@@ -4,6 +4,7 @@ import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -23,8 +24,9 @@ public class Game implements Serializable {
 	private long id;
 	private String redPlayerNick;
 	private String bluePlayerNick;
-	private boolean isRedPlayerReady = false;
-	private boolean isBluePlayerReady = false;
+	private boolean isItRedsTurn;
+	@OneToOne
+	private GameField gameField;
 
 	public long getId() {
 		return id;
@@ -38,20 +40,20 @@ public class Game implements Serializable {
 		this.bluePlayerNick = bluePlayerNick;
 	}
 
-	public boolean isIsBluePlayerReady() {
-		return isBluePlayerReady;
+	public GameField getGameField() {
+		return gameField;
 	}
 
-	public void setIsBluePlayerReady(boolean isBluePlayerReady) {
-		this.isBluePlayerReady = isBluePlayerReady;
+	public void setGameField(GameField gameField) {
+		this.gameField = gameField;
 	}
 
-	public boolean isIsRedPlayerReady() {
-		return isRedPlayerReady;
+	public boolean isIsItRedsTurn() {
+		return isItRedsTurn;
 	}
 
-	public void setIsRedPlayerReady(boolean isRedPlayerReady) {
-		this.isRedPlayerReady = isRedPlayerReady;
+	public void setIsItRedsTurn(boolean isItRedsTurn) {
+		this.isItRedsTurn = isItRedsTurn;
 	}
 
 	public String getRedPlayerNick() {
@@ -64,6 +66,6 @@ public class Game implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Game{" + "id=" + id + ", redPlayerNick=" + redPlayerNick + ", bluePlayerNick=" + bluePlayerNick + ", isRedPlayerReady=" + isRedPlayerReady + ", isBluePlayerReady=" + isBluePlayerReady + '}';
+		return "Game{" + "id=" + id + ", redPlayerNick=" + redPlayerNick + ", bluePlayerNick=" + bluePlayerNick + ", isItRedsTurn=" + isItRedsTurn + ", gameField=" + gameField + '}';
 	}
 }
