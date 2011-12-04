@@ -86,11 +86,11 @@ public class GameService {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String findOpenGame() {
 		try {
-			TypedQuery<Game> query = em.createQuery("SELECT e.id FROM Game e WHERE e.bluePlayerNick = :blueNick", Game.class);
+			TypedQuery<Long> query = em.createQuery("SELECT e.id FROM Game e WHERE e.bluePlayerNick = :blueNick", Long.class);
 			query.setParameter("blueNick", "");
-			Game openGame = query.getSingleResult();
-			log.info("Found open game " + openGame);
-			return Long.toString(openGame.getId());
+			long openGameId = query.getSingleResult();
+			log.info("Found open game id " + openGameId);
+			return Long.toString(openGameId);
 		} catch (NoResultException e) {
 			log.info("No open games found");
 			return "-1";
