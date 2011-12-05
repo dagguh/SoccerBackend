@@ -1,6 +1,7 @@
-package pl.dagguh.soccerbackend.player.control;
+package pl.dagguh.soccerbackend.player.control.exceptions;
 
 import org.apache.log4j.Logger;
+import pl.dagguh.soccerbackend.player.control.PlayerToken;
 
 /**
  *

@@ -1,7 +1,8 @@
 package pl.dagguh.soccerbackend.game.boundary;
 
+import pl.dagguh.soccerbackend.game.control.exceptions.InvalidGameTokenException;
+import pl.dagguh.soccerbackend.game.control.exceptions.GameNotFoundException;
 import java.util.List;
-import java.util.logging.Level;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -11,15 +12,13 @@ import javax.persistence.TypedQuery;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
-import pl.dagguh.soccerbackend.game.control.GameNotFoundException;
-import pl.dagguh.soccerbackend.game.control.GameStatus;
-import pl.dagguh.soccerbackend.game.control.GameToken;
-import pl.dagguh.soccerbackend.player.control.PlayerToken;
+import pl.dagguh.soccerbackend.game.control.*;
 import pl.dagguh.soccerbackend.game.entity.Game;
 import pl.dagguh.soccerbackend.game.entity.GameField;
 import pl.dagguh.soccerbackend.player.boundary.PlayerService;
-import pl.dagguh.soccerbackend.player.control.PlayerNotFoundException;
-import pl.dagguh.soccerbackend.player.control.TicketMismatchException;
+import pl.dagguh.soccerbackend.player.control.exceptions.PlayerNotFoundException;
+import pl.dagguh.soccerbackend.player.control.PlayerToken;
+import pl.dagguh.soccerbackend.player.control.exceptions.TicketMismatchException;
 
 /**
  * @author Maciej Kwidziński <maciek.kwidzinski@gmail.com>
@@ -34,6 +33,8 @@ public class GameService {
 	private EntityManager em;
 	@EJB
 	private PlayerService playerService;
+	@EJB
+	private GameLogic gameLogic;
 
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -42,7 +43,8 @@ public class GameService {
 		try {
 			log.info("Creating new game with " + playerToken);
 			playerService.validatePlayerToken(playerToken);
-			Game mergedGame = em.merge(createNewGame(playerToken.getNick()));
+			Game unmergedGame = gameLogic.createNewGame(playerToken.getNick());
+			Game mergedGame = em.merge(unmergedGame);
 			log.info("New game created " + mergedGame);
 			return Long.toString(mergedGame.getId());
 		} catch (PlayerNotFoundException e) {
@@ -50,15 +52,6 @@ public class GameService {
 		} catch (TicketMismatchException e) {
 			return "-1";
 		}
-	}
-
-	public Game createNewGame(String redPlayerNick) {
-		Game game = new Game();
-		game.setRedPlayerNick(redPlayerNick);
-		game.setBluePlayerNick("Oczekiwanie na przeciwnika...");
-		game.setGameStatus(GameStatus.WAITING_FOR_OPPONENT);
-		game.setGameField(new GameField());
-		return game;
 	}
 
 	@POST
@@ -70,8 +63,7 @@ public class GameService {
 			log.info(playerToken + " trying to join game " + gameId);
 			playerService.validatePlayerToken(playerToken);
 			Game game = find(gameId);
-			game.setBluePlayerNick(playerToken.getNick());
-			game.setGameStatus(GameStatus.RED_PLAYER_TURN);
+			gameLogic.joinToGame(game, playerToken.getNick());
 			em.merge(game);
 		} catch (PlayerNotFoundException ex) {
 		} catch (TicketMismatchException ex) {
@@ -131,8 +123,35 @@ public class GameService {
 		return game.getGameField();
 	}
 
-	public void validateGameToken(GameToken gameToken) throws PlayerNotFoundException, TicketMismatchException {
-		playerService.validatePlayerToken(gameToken.getPlayerToken());
-//		Game game = find(gameToken.getGameId());
+	public void validateGameToken(GameToken gameToken) throws PlayerNotFoundException, TicketMismatchException, InvalidGameTokenException {
+		PlayerToken playerToken = gameToken.getPlayerToken();
+		playerService.validatePlayerToken(playerToken);
+		Game game = find(gameToken.getGameId());
+		String nickFromToken = playerToken.getNick();
+		if (game.getBluePlayerNick().equals(nickFromToken) || game.getRedPlayerNick().equals(nickFromToken)) {
+		} else {
+			throw new InvalidGameTokenException(gameToken);
+		}
+	}
+
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
+	@Path("/move/{gameId}")
+	public MoveStatus makeMove(Move move) {
+		try {
+			GameToken gameToken = move.getGameToken();
+			validateGameToken(gameToken);
+			Game game = find(gameToken.getGameId());
+			MoveStatus status = gameLogic.makeMove(move.getMoveDirection(), game);
+			GameStatus gameStatusAfterMove = gameLogic.interpretMoveStatus(status, game.getGameStatus());
+			game.setGameStatus(gameStatusAfterMove);
+			em.merge(game);
+			return status;
+		} catch (PlayerNotFoundException ex) {
+		} catch (TicketMismatchException ex) {
+		} catch (InvalidGameTokenException ex) {
+		}
+		return MoveStatus.REJECTED;
 	}
 }

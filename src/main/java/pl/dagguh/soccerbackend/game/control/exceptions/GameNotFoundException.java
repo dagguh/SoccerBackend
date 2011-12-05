@@ -1,4 +1,4 @@
-package pl.dagguh.soccerbackend.game.control;
+package pl.dagguh.soccerbackend.game.control.exceptions;
 
 /**
  *

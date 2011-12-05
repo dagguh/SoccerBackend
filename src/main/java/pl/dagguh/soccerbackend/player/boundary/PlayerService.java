@@ -8,9 +8,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
 import pl.dagguh.soccerbackend.player.control.PlayerToken;
-import pl.dagguh.soccerbackend.player.control.PasswordMismatchException;
-import pl.dagguh.soccerbackend.player.control.PlayerNotFoundException;
-import pl.dagguh.soccerbackend.player.control.TicketMismatchException;
+import pl.dagguh.soccerbackend.player.control.exceptions.PasswordMismatchException;
+import pl.dagguh.soccerbackend.player.control.exceptions.PlayerNotFoundException;
+import pl.dagguh.soccerbackend.player.control.exceptions.TicketMismatchException;
 import pl.dagguh.soccerbackend.player.entity.Player;
 
 /**

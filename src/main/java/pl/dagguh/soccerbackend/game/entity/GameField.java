@@ -10,7 +10,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.log4j.Logger;
 import pl.dagguh.soccerbackend.game.control.MoveDirection;
-import pl.dagguh.soccerbackend.game.control.UnexpectedMoveDirection;
+import pl.dagguh.soccerbackend.game.control.MoveStatus;
+import pl.dagguh.soccerbackend.game.control.exceptions.UnexpectedMoveDirection;
+import pl.dagguh.soccerbackend.game.control.exceptions.BallOutOfField;
 
 /**
  * @author Maciej Kwidziński <maciek.kwidzinski@gmail.com>
@@ -29,7 +31,6 @@ public class GameField implements Serializable {
 	private int[][] bitMasks;
 	private int ballX;
 	private int ballY;
-	private static final int emptyBitMask = 0;
 	private static Logger log = Logger.getLogger(GameField.class);
 
 	public GameField() {
@@ -50,7 +51,7 @@ public class GameField implements Serializable {
 		bitMasks = new int[fieldHeight][fieldWidth];
 		for (int y = 0; y < fieldHeight; y++) {
 			for (int x = 0; x < fieldWidth; x++) {
-				bitMasks[y][x] = emptyBitMask;
+				bitMasks[y][x] = MoveDirection.emptyBitMask;
 			}
 		}
 		ballX = 4;
@@ -91,29 +92,42 @@ public class GameField implements Serializable {
 	}
 
 	public boolean isMoveDirectionLegal(MoveDirection moveDirection) {
-		return (moveDirection.getMask() & getBitMaskAtBall()) == emptyBitMask;
+		return (moveDirection.getMask() & getBitMaskAtBall()) == MoveDirection.emptyBitMask;
 	}
 
 	private int getBitMaskAtBall() {
 		return bitMasks[ballY][ballX];
 	}
 
-	public boolean makeMove(MoveDirection moveDirection) {
+	public MoveStatus makeMove(MoveDirection moveDirection) {
 		if (!isMoveDirectionLegal(moveDirection)) {
-			return false;
+			return MoveStatus.REJECTED;
 		}
 
 		try {
 			leaveTrail(moveDirection);
 			moveBall(moveDirection);
-			leaveTrail(moveDirection);
-			return true;
-		} catch (UnexpectedMoveDirection e) {
-			return false;
+			boolean isTurnFinished = isBallFinishingTurn();
+			leaveTrail(moveDirection.getOpposite());
+			if (didRedShootGoal()) {
+				return MoveStatus.ACCEPTED_RED_SHOOTS_GOAL;
+			} else if (didBlueShootGoal()) {
+				return MoveStatus.ACCEPTED_BLUE_SHOOTS_GOAL;
+			} else if (isBallBlocked()) {
+				return MoveStatus.ACCEPTED_BLOCKED;
+			} else if (isTurnFinished) {
+				return MoveStatus.ACCEPTED_FINISH_TURN;
+			} else {
+				return MoveStatus.ACCEPTED_CONTINUE_TURN;
+			}
+		} catch (UnexpectedMoveDirection ex) {
+			return MoveStatus.REJECTED;
+		} catch (BallOutOfField ex) {
+			return MoveStatus.REJECTED;
 		}
 	}
 
-	private void moveBall(MoveDirection moveDirection) throws UnexpectedMoveDirection {
+	private void moveBall(MoveDirection moveDirection) throws UnexpectedMoveDirection, BallOutOfField {
 		switch (moveDirection) {
 			case N:
 				moveNorth();
@@ -144,8 +158,9 @@ public class GameField implements Serializable {
 				moveWest();
 				break;
 			default:
-				throw new UnexpectedMoveDirection();
+				throw new UnexpectedMoveDirection(moveDirection);
 		}
+		validateBallOnField();
 	}
 
 	private void moveNorth() {
@@ -164,7 +179,29 @@ public class GameField implements Serializable {
 		ballX--;
 	}
 
+	private void validateBallOnField() throws BallOutOfField {
+		if (ballX < 0 || ballX >= fieldWidth || ballY < 0 || ballY >= fieldHeight) {
+			throw new BallOutOfField(ballX, ballY);
+		}
+	}
+
 	private void leaveTrail(MoveDirection moveDirection) {
 		bitMasks[ballY][ballX] |= moveDirection.getMask();
+	}
+
+	private boolean isBallFinishingTurn() {
+		return getBitMaskAtBall() == MoveDirection.emptyBitMask;
+	}
+
+	private boolean isBallBlocked() {
+		return getBitMaskAtBall() == MoveDirection.fullBitMask;
+	}
+
+	private boolean didRedShootGoal() {
+		return getBallY() > fieldHeight;
+	}
+
+	private boolean didBlueShootGoal() {
+		return getBallY() < 0;
 	}
 }
