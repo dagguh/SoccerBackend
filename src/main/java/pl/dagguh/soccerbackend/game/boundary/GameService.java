@@ -154,4 +154,20 @@ public class GameService {
 		}
 		return MoveStatus.REJECTED;
 	}
+
+	@GET
+	@Path("/${color}/{gameId}")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String getPlayerNick(@PathParam("color") String color, @PathParam("gameId") String gameId) {
+		Game game = find(gameId);
+		if (color.equals("red")) {
+			return game.getRedPlayerNick();
+		} else if (color.equals("blue")) {
+			return game.getBluePlayerNick();
+		} else {
+			String message = "Unknown player color " + color;
+			log.warn(message);
+			return message;
+		}
+	}
 }
