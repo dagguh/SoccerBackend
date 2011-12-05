@@ -8,6 +8,7 @@ import javax.persistence.OneToOne;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import pl.dagguh.soccerbackend.game.control.GameStatus;
 
 /**
  *
@@ -24,9 +25,9 @@ public class Game implements Serializable {
 	private long id;
 	private String redPlayerNick;
 	private String bluePlayerNick;
-	private boolean isItRedsTurn;
 	@OneToOne
 	private GameField gameField;
+	private GameStatus gameStatus;
 
 	public long getId() {
 		return id;
@@ -48,12 +49,12 @@ public class Game implements Serializable {
 		this.gameField = gameField;
 	}
 
-	public boolean isIsItRedsTurn() {
-		return isItRedsTurn;
+	public GameStatus getGameStatus() {
+		return gameStatus;
 	}
 
-	public void setIsItRedsTurn(boolean isItRedsTurn) {
-		this.isItRedsTurn = isItRedsTurn;
+	public void setGameStatus(GameStatus gameStatus) {
+		this.gameStatus = gameStatus;
 	}
 
 	public String getRedPlayerNick() {
@@ -66,6 +67,6 @@ public class Game implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Game{" + "id=" + id + ", redPlayerNick=" + redPlayerNick + ", bluePlayerNick=" + bluePlayerNick + ", isItRedsTurn=" + isItRedsTurn + ", gameField=" + gameField + '}';
+		return "Game{" + "id=" + id + ", redPlayerNick=" + redPlayerNick + ", bluePlayerNick=" + bluePlayerNick + ", gameField=" + gameField + ", gameStatus=" + gameStatus + '}';
 	}
 }
