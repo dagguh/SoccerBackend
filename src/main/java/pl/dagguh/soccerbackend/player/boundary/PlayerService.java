@@ -7,6 +7,7 @@ import javax.persistence.PersistenceContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
+import pl.dagguh.soccerbackend.player.control.PlayerToken;
 import pl.dagguh.soccerbackend.player.control.PasswordMismatchException;
 import pl.dagguh.soccerbackend.player.control.PlayerNotFoundException;
 import pl.dagguh.soccerbackend.player.control.TicketMismatchException;
@@ -50,8 +51,7 @@ public class PlayerService {
 	public Player find(String nick) throws PlayerNotFoundException {
 		Player player = em.find(Player.class, nick);
 		if (null == player) {
-			log.warn("No player with nick " + nick + " found");
-			throw new PlayerNotFoundException();
+			throw new PlayerNotFoundException(nick);
 		}
 		return player;
 	}
@@ -112,13 +112,11 @@ public class PlayerService {
 		}
 	}
 
-	public void validateTicket(Player actualPlayer) throws PlayerNotFoundException, TicketMismatchException {
-		Player expectedPlayer = find(actualPlayer.getNick());
-		String expectedTicket = expectedPlayer.getTicket();
-		String actualTicket = actualPlayer.getTicket();
-		if (!expectedTicket.equals(actualTicket)) {
-			log.warn(actualPlayer + " ticket doesn't match " + expectedTicket);
-			throw new TicketMismatchException();
+	public void validatePlayerToken(PlayerToken playerToken) throws PlayerNotFoundException, TicketMismatchException {
+		Player player = find(playerToken.getNick());
+		if (!player.getTicket().equals(playerToken.getTicket())) {
+			throw new TicketMismatchException(playerToken);
 		}
 	}
+
 }

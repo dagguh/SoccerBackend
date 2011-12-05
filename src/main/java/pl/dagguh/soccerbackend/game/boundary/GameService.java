@@ -13,12 +13,13 @@ import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
 import pl.dagguh.soccerbackend.game.control.GameNotFoundException;
 import pl.dagguh.soccerbackend.game.control.GameStatus;
+import pl.dagguh.soccerbackend.game.control.GameToken;
+import pl.dagguh.soccerbackend.player.control.PlayerToken;
 import pl.dagguh.soccerbackend.game.entity.Game;
 import pl.dagguh.soccerbackend.game.entity.GameField;
 import pl.dagguh.soccerbackend.player.boundary.PlayerService;
 import pl.dagguh.soccerbackend.player.control.PlayerNotFoundException;
 import pl.dagguh.soccerbackend.player.control.TicketMismatchException;
-import pl.dagguh.soccerbackend.player.entity.Player;
 
 /**
  * @author Maciej Kwidziński <maciek.kwidzinski@gmail.com>
@@ -37,11 +38,11 @@ public class GameService {
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
-	public String hostGame(Player firstPlayer) {
+	public String hostGame(PlayerToken playerToken) {
 		try {
-			log.info("Creating new game with first player: " + firstPlayer);
-			playerService.validateTicket(firstPlayer);
-			Game mergedGame = em.merge(createNewGame(firstPlayer.getNick()));
+			log.info("Creating new game with " + playerToken);
+			playerService.validatePlayerToken(playerToken);
+			Game mergedGame = em.merge(createNewGame(playerToken.getNick()));
 			log.info("New game created " + mergedGame);
 			return Long.toString(mergedGame.getId());
 		} catch (PlayerNotFoundException e) {
@@ -64,17 +65,16 @@ public class GameService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("/join/{gameId}")
-	public void join(Player bluePlayer, @PathParam("gameId") String gameId) {
+	public void join(PlayerToken playerToken, @PathParam("gameId") String gameId) {
 		try {
-			playerService.validateTicket(bluePlayer);
+			log.info(playerToken + " trying to join game " + gameId);
+			playerService.validatePlayerToken(playerToken);
 			Game game = find(gameId);
-			game.setBluePlayerNick(bluePlayer.getNick());
+			game.setBluePlayerNick(playerToken.getNick());
 			game.setGameStatus(GameStatus.RED_PLAYER_TURN);
 			em.merge(game);
 		} catch (PlayerNotFoundException ex) {
-			log.info("Nonexistent " + bluePlayer + " trying to join game" + gameId);
 		} catch (TicketMismatchException ex) {
-			log.info(bluePlayer + " had invalid ticket while trying to join game" + gameId);
 		}
 	}
 
@@ -121,5 +121,18 @@ public class GameService {
 	public GameStatus getGameStatus(@PathParam("gameId") String gameId) {
 		Game game = find(gameId);
 		return game.getGameStatus();
+	}
+
+	@POST
+	@Produces(MediaType.APPLICATION_XML)
+	@Path("/field/{gameId}")
+	public GameField getGameField(@PathParam("gameId") String gameId) {
+		Game game = find(gameId);
+		return game.getGameField();
+	}
+
+	public void validateGameToken(GameToken gameToken) throws PlayerNotFoundException, TicketMismatchException {
+		playerService.validatePlayerToken(gameToken.getPlayerToken());
+//		Game game = find(gameToken.getGameId());
 	}
 }
