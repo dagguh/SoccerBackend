@@ -115,7 +115,7 @@ public class GameService {
 		}
 	}
 
-	@GET
+	@POST
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("/status/{gameId}")
 	public GameStatus getGameStatus(@PathParam("gameId") String gameId) {
