@@ -130,11 +130,16 @@ public class GameField implements Serializable {
 		return "GameField{" + "ballX=" + ballX + ", ballY=" + ballY + '}';
 	}
 
-	public boolean isMoveDirectionLegal(MoveDirection moveDirection) {
-		return (moveDirection.getMask() & getBitMaskAtBall()) == MoveDirection.emptyBitMask;
+	private boolean isMoveDirectionLegal(MoveDirection moveDirection) {
+		try {
+			return (moveDirection.getMask() & getBitMaskAtBall()) == MoveDirection.emptyBitMask;
+		} catch (BallOutOfField ex) {
+			return false;
+		}
 	}
 
-	private int getBitMaskAtBall() {
+	private int getBitMaskAtBall() throws BallOutOfField {
+		validateBallOnField();
 		return bitMasks[ballY][ballX];
 	}
 
@@ -146,15 +151,11 @@ public class GameField implements Serializable {
 		try {
 			leaveTrail(moveDirection);
 			moveBall(moveDirection);
-			boolean isTurnFinished = isBallFinishingTurn();
+			int bitMaskBeforeSecondTrail = getBitMaskAtBall();
 			leaveTrail(moveDirection.getOpposite());
-			if (didRedShootGoal()) {
-				return MoveStatus.ACCEPTED_RED_SHOOTS_GOAL;
-			} else if (didBlueShootGoal()) {
-				return MoveStatus.ACCEPTED_BLUE_SHOOTS_GOAL;
-			} else if (isBallBlocked()) {
+			if (isBallBlocked()) {
 				return MoveStatus.ACCEPTED_BLOCKED;
-			} else if (isTurnFinished) {
+			} else if (bitMaskBeforeSecondTrail == MoveDirection.emptyBitMask) {
 				return MoveStatus.ACCEPTED_FINISH_TURN;
 			} else {
 				return MoveStatus.ACCEPTED_CONTINUE_TURN;
@@ -162,7 +163,14 @@ public class GameField implements Serializable {
 		} catch (UnexpectedMoveDirection ex) {
 			return MoveStatus.REJECTED;
 		} catch (BallOutOfField ex) {
-			return MoveStatus.REJECTED;
+			if (didRedShootGoal()) {
+				return MoveStatus.ACCEPTED_RED_SHOOTS_GOAL;
+			} else if (didBlueShootGoal()) {
+				return MoveStatus.ACCEPTED_BLUE_SHOOTS_GOAL;
+			} else {
+				log.warn("Ball fell out, but nobody shot a goal " + ballX + "," + ballY);
+				return MoveStatus.REJECTED;
+			}
 		}
 	}
 
@@ -199,15 +207,14 @@ public class GameField implements Serializable {
 			default:
 				throw new UnexpectedMoveDirection(moveDirection);
 		}
-		validateBallOnField();
 	}
 
 	private void moveNorth() {
-		ballY++;
+		ballY--;
 	}
 
 	private void moveSouth() {
-		ballY--;
+		ballY++;
 	}
 
 	private void moveEast() {
@@ -229,19 +236,15 @@ public class GameField implements Serializable {
 		bitMasks[ballY][ballX] |= moveDirection.getMask();
 	}
 
-	private boolean isBallFinishingTurn() {
-		return getBitMaskAtBall() == MoveDirection.emptyBitMask;
-	}
-
-	private boolean isBallBlocked() {
+	private boolean isBallBlocked() throws BallOutOfField {
 		return getBitMaskAtBall() == MoveDirection.fullBitMask;
 	}
 
 	private boolean didRedShootGoal() {
-		return getBallY() > fieldHeight;
+		return getBallY() >= fieldHeight;
 	}
 
 	private boolean didBlueShootGoal() {
-		return getBallY() < 0;
+		return getBallY() <= 0;
 	}
 }
