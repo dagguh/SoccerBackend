@@ -30,7 +30,7 @@ public class GameLogic {
 
 	public MoveStatus makeMove(MoveDirection direction, Game game) {
 		if (!isReadyToMove(game)) {
-			log.info("Moving when not ready to move " + game.getGameStatus());
+			log.warn("Moving when not ready to move " + game.getGameStatus());
 			return MoveStatus.REJECTED;
 		}
 		GameField gameField = game.getGameField();
