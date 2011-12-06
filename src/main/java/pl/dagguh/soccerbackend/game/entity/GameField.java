@@ -225,6 +225,7 @@ public class GameField implements Serializable {
 	}
 
 	private void leaveTrail(MoveDirection moveDirection) {
+		log.info("Leaving trail from [" + ballY + "][" + ballX + "] to direction " + moveDirection + " with mask " + moveDirection.getMask());
 		bitMasks[ballY][ballX] |= moveDirection.getMask();
 	}
 
