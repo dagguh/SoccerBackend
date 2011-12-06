@@ -135,8 +135,8 @@ public class GameService {
 	}
 
 	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.TEXT_PLAIN)
+	@Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces(MediaType.APPLICATION_XML)
 	@Path("/move/{gameId}")
 	public MoveStatus makeMove(Move move) {
 		try {
@@ -156,7 +156,7 @@ public class GameService {
 	}
 
 	@GET
-	@Path("/${color}/{gameId}")
+	@Path("/{color}/{gameId}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getPlayerNick(@PathParam("color") String color, @PathParam("gameId") String gameId) {
 		Game game = find(gameId);
