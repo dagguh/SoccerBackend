@@ -1,23 +1,22 @@
 package pl.dagguh.soccerbackend.game.boundary;
 
-import pl.dagguh.soccerbackend.game.control.exceptions.InvalidGameTokenException;
-import pl.dagguh.soccerbackend.game.control.exceptions.GameNotFoundException;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Table;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
 import pl.dagguh.soccerbackend.game.control.*;
+import pl.dagguh.soccerbackend.game.control.exceptions.GameNotFoundException;
+import pl.dagguh.soccerbackend.game.control.exceptions.InvalidGameTokenException;
 import pl.dagguh.soccerbackend.game.entity.Game;
 import pl.dagguh.soccerbackend.game.entity.GameField;
 import pl.dagguh.soccerbackend.player.boundary.PlayerService;
-import pl.dagguh.soccerbackend.player.control.exceptions.PlayerNotFoundException;
 import pl.dagguh.soccerbackend.player.control.PlayerToken;
+import pl.dagguh.soccerbackend.player.control.exceptions.PlayerNotFoundException;
 import pl.dagguh.soccerbackend.player.control.exceptions.TicketMismatchException;
 
 /**
@@ -25,7 +24,6 @@ import pl.dagguh.soccerbackend.player.control.exceptions.TicketMismatchException
  */
 @Stateless
 @Path("/game")
-@Table()
 public class GameService {
 
 	private static Logger log = Logger.getLogger(GameService.class);
@@ -108,7 +106,7 @@ public class GameService {
 	}
 
 	@POST
-	@Produces(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_XML)
 	@Path("/status/{gameId}")
 	public GameStatus getGameStatus(@PathParam("gameId") String gameId) {
 		Game game = find(gameId);
@@ -137,9 +135,10 @@ public class GameService {
 	@POST
 	@Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Produces(MediaType.APPLICATION_XML)
-	@Path("/move/{gameId}")
+	@Path("/move")
 	public MoveStatus makeMove(Move move) {
 		try {
+			log.info("Making move " + move);
 			GameToken gameToken = move.getGameToken();
 			validateGameToken(gameToken);
 			Game game = find(gameToken.getGameId());
