@@ -1,8 +1,11 @@
 package pl.dagguh.soccerbackend.game.control;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * @author Maciej Kwidziński <maciek.kwidzinski@gmail.com>
  */
+@XmlRootElement
 public enum MoveStatus {
 
 	ACCEPTED_FINISH_TURN,
