@@ -49,13 +49,52 @@ public class GameField implements Serializable {
 
 	public final void clear() {
 		bitMasks = new int[fieldHeight][fieldWidth];
-		for (int y = 0; y < fieldHeight; y++) {
-			for (int x = 0; x < fieldWidth; x++) {
-				bitMasks[y][x] = MoveDirection.emptyBitMask;
+		for (int i = 0; i < fieldHeight; i++) {
+			for (int j = 0; j < fieldWidth; j++) {
+				if (j == 0) {
+					bitMasks[i][j] = 241;
+				} else if (j == 8) {
+					bitMasks[i][j] = 31;
+				}
+				if (i == 0) {
+					if (j == 0) {
+						bitMasks[i][j] = 247;
+					} else if (j < 3) {
+						bitMasks[i][j] = 199;
+					} else if (j == 3) {
+						bitMasks[i][j] = 193;
+					} else if (j == 4) {
+						bitMasks[i][j] = 0;
+					} else if (j == 5) {
+						bitMasks[i][j] = 7;
+					} else if (j < 8) {
+						bitMasks[i][j] = 199;
+					} else if (j == 8) {
+						bitMasks[i][j] = 223;
+					}
+				} else if (i == 10) {
+					if (j == 0) {
+						bitMasks[i][j] = 253;
+					} else if (j < 3) {
+						bitMasks[i][j] = 124;
+					} else if (j == 3) {
+						bitMasks[i][j] = 112;
+					} else if (j == 4) {
+						bitMasks[i][j] = 0;
+					} else if (j == 5) {
+						bitMasks[i][j] = 28;
+					} else if (j < 8) {
+						bitMasks[i][j] = 124;
+					} else if (j == 8) {
+						bitMasks[i][j] = 127;
+					}
+				} else if (j != 0 && j != 8) {
+					bitMasks[i][j] = 0;
+				}
 			}
 		}
 		ballX = 4;
-		ballY = 7;
+		ballY = 5;
 	}
 
 	public long getId() {
